@@ -1,0 +1,18 @@
+mode: analyze
+models:
+- llama-3.2-1b
+- llama-3.2-3b
+- llama-3.1-8b
+- llama-3.1-70b
+model: llama-3.2-3b
+dataset: synthetic
+split: test
+max_examples: 1000
+formats:
+- question_first
+- options_first
+top_p: 0.8
+time: 00:45:00
+gpus: h200:1
+mem_per_cpu: 120G
+qos: null
