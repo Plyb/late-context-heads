@@ -1,0 +1,45 @@
+[project]
+name = "mcqa-head-finding"
+version = "0.1.0"
+description = "Find the attention heads driving MCQA answer selection via direct logit attribution, and characterize their value-weighted attention"
+readme = "README.md"
+authors = [
+    { name = "Koby Lewis", email = "kobyjl@byu.edu" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "torch",
+    "transformers",
+    "transformer-lens",
+    "datasets",
+    "numpy",
+    "matplotlib",
+    "jaxtyping",
+    "pyyaml",
+    "runlog",
+]
+
+[project.optional-dependencies]
+# BYU ORC users: uv sync --extra byu
+byu = ["byutils", "slurm-launcher"]
+
+[project.scripts]
+mcqa-heads = "mcqa_head_finding.run:main"
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.9.0"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+byutils = { git = "https://github.com/Plyb/byutils.git" }
+runlog = { git = "https://github.com/Plyb/runlog.git" }
+slurm-launcher = { git = "https://github.com/Plyb/slurm-launcher.git" }
+
+[dependency-groups]
+dev = ["pyright"]
