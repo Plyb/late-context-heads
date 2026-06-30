@@ -12,13 +12,6 @@ import torch
 from transformer_lens import HookedTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerBase
 
-try:
-    from byutils import load_model as _byutils_load_model
-    from byutils import load_tokenizer as _byutils_load_tokenizer
-    _BYUTILS_AVAILABLE = True
-except ImportError:
-    _BYUTILS_AVAILABLE = False
-
 
 def select_dtype(device: torch.device) -> torch.dtype:
     """bf16 only on GPUs with native support (compute capability >= 8); else fp32.
@@ -46,14 +39,15 @@ def load_hooked_model(
     from cache instead of holding a second full CPU copy -- needed for 70B.
     ``n_devices>1`` splits the layers across that many GPUs (model parallelism).
     """
-    if _BYUTILS_AVAILABLE:
-        tokenizer = cast(PreTrainedTokenizerBase, _byutils_load_tokenizer(model_id))
+    try:
+        from byutils import load_model, load_tokenizer  # type: ignore[import-not-found]
+        tokenizer = cast(PreTrainedTokenizerBase, load_tokenizer(model_id))
         hf_model = (
-            _byutils_load_model(model_id, model_class=AutoModelForCausalLM, dtype=dtype)
+            load_model(model_id, model_class=AutoModelForCausalLM, dtype=dtype)
             if use_hf_model
             else None
         )
-    else:
+    except ImportError:
         tokenizer = cast(PreTrainedTokenizerBase, AutoTokenizer.from_pretrained(model_id))
         hf_model = (
             AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=dtype)

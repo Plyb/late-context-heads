@@ -11,7 +11,7 @@ from collections import defaultdict
 from typing import NamedTuple, cast
 
 try:
-    from byutils import load_dataset
+    from byutils import load_dataset  # type: ignore[import-not-found]
 except ImportError:
     from datasets import load_dataset
 

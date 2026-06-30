@@ -16,11 +16,6 @@ import logging
 import os
 from pathlib import Path
 
-try:
-    from slurm_launcher import SlurmConfig, is_login_node, submit_slurm_job
-    _SLURM_AVAILABLE = True
-except ImportError:
-    _SLURM_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("mcqa_head_finding")
@@ -247,7 +242,7 @@ def _run(args: argparse.Namespace, out_dir: Path) -> None:
 
 
 def _prefetch(args: argparse.Namespace) -> None:
-    from byutils import prefetch_dataset, prefetch_model
+    from byutils import prefetch_dataset, prefetch_model  # type: ignore[import-not-found]
 
     from mcqa_head_finding import data
 
@@ -259,6 +254,27 @@ def _prefetch(args: argparse.Namespace) -> None:
     for model_key in keys:
         logger.info("prefetching %s", MODELS[model_key])
         prefetch_model(MODELS[model_key])
+
+
+def _maybe_submit_slurm(args: argparse.Namespace) -> None:
+    """Submit to SLURM if slurm-launcher is installed and --local was not passed."""
+    if args.local:
+        return
+    try:
+        from slurm_launcher import SlurmConfig, is_login_node, submit_slurm_job  # type: ignore[import-not-found]
+    except ImportError:
+        return
+    if args.prefetch and is_login_node():
+        _prefetch(args)
+    slurm = SlurmConfig(
+        job_type="compute",
+        time=args.time,
+        gpus_per_node=args.gpus,
+        mem_per_cpu=args.mem_per_cpu,
+        qos=args.qos,
+    )
+    Path("slurm_logs").mkdir(exist_ok=True)
+    submit_slurm_job(slurm, python_cmd="uv run python")
 
 
 def main() -> None:
@@ -295,18 +311,7 @@ def main() -> None:
     parser.add_argument("--qos", default=None)
     args = parser.parse_args()
 
-    if _SLURM_AVAILABLE and not args.local:
-        if args.prefetch and is_login_node():
-            _prefetch(args)
-        slurm = SlurmConfig(
-            job_type="compute",
-            time=args.time,
-            gpus_per_node=args.gpus,
-            mem_per_cpu=args.mem_per_cpu,
-            qos=args.qos,
-        )
-        Path("slurm_logs").mkdir(exist_ok=True)
-        submit_slurm_job(slurm, python_cmd="uv run python")
+    _maybe_submit_slurm(args)
 
     from datetime import datetime
 
