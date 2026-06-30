@@ -42,8 +42,8 @@ interpret the heatmaps.
 ### General (non-BYU)
 
 ```bash
-git clone <this repo>
-cd mcqa-head-finding
+git clone https://github.com/Plyb/late-context-heads
+cd late-context-heads
 uv sync
 # or: pip install -e .
 ```
@@ -51,14 +51,14 @@ uv sync
 ### BYU ORC (with shared cache + SLURM helpers)
 
 ```bash
-git clone <this repo>
-cd mcqa-head-finding
+git clone https://github.com/Plyb/late-context-heads
+cd late-context-heads
 uv sync --extra byu
 ```
 
-The `byu` extra installs `byutils` (shared HuggingFace cache), `slurm-launcher` (auto-job
-submission), and `runlog` (structured run logging). Without it, the pipeline uses default
-HF_HOME caching and runs directly on the current machine.
+The `byu` extra installs `byutils` (shared HuggingFace cache) and `slurm-launcher` (auto-job
+submission). Without it, the pipeline uses default HF_HOME caching and runs directly on the
+current machine.
 
 ## Usage
 
@@ -125,13 +125,11 @@ Outside BYU ORC, the `--gpus`, `--time`, `--mem-per-cpu`, `--qos` flags are no-o
    :] * ||value_j||_2` per head and token-type, producing heatmaps of what the heads read
    from the final position.
 
-See [task.md](task.md) for the mathematical details.
-
 ## Testing
 
 ```bash
 # Quick smoke test (CPU, GPT-2, ~30 sec)
-uv run pytest tests/smoke_test.py -v
+uv run python tests/smoke_test.py
 ```
 
 ## Code organization
